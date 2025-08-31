@@ -6,12 +6,14 @@ import {
   FaTags, 
   FaImages, 
   FaUsers,
-  FaBox
+  FaBox,
+  FaGift
 } from 'react-icons/fa';
 
 const Sidebar = () => {
   const navItems = [
     { path: '/products', label: 'Products', icon: <FaBox /> },
+    { path: '/combo-products', label: 'Combo Products', icon: <FaGift /> },
     // { path: '/add-product', label: 'Add Product', icon: <FaPlus /> },
     //{ path: '/add-blog', label: 'Add Blog', icon: <FaBlog /> },
     //{ path: '/add-category', label: 'Add Category', icon: <FaTags /> },

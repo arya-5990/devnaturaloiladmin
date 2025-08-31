@@ -6,6 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import ErrorBoundary from './components/ErrorBoundary';
 import Layout from './components/Layout';
 import Products from './pages/Products';
+import ComboProducts from './pages/ComboProducts';
 import AddProduct from './pages/AddProduct';
 import AddBlog from './pages/AddBlog';
 import AddCategory from './pages/AddCategory';
@@ -21,6 +22,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Navigate to="/products" replace />} />
               <Route path="/products" element={<Products />} />
+              <Route path="/combo-products" element={<ComboProducts />} />
               <Route path="/add-product" element={<AddProduct />} />
               <Route path="/add-blog" element={<AddBlog />} />
               <Route path="/add-category" element={<AddCategory />} />
