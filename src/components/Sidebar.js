@@ -15,9 +15,9 @@ const Sidebar = () => {
     { path: '/products', label: 'Products', icon: <FaBox /> },
     { path: '/combo-products', label: 'Combo Products', icon: <FaGift /> },
     // { path: '/add-product', label: 'Add Product', icon: <FaPlus /> },
-    //{ path: '/add-blog', label: 'Add Blog', icon: <FaBlog /> },
+    { path: '/add-blog', label: 'Add Blog', icon: <FaBlog /> },
     //{ path: '/add-category', label: 'Add Category', icon: <FaTags /> },
-    //{ path: '/add-banner', label: 'Add Banner', icon: <FaImages /> },
+    { path: '/add-banner', label: 'Add Banner', icon: <FaImages /> },
     //{ path: '/manage-users', label: 'Manage Users', icon: <FaUsers /> },
   ];
 
