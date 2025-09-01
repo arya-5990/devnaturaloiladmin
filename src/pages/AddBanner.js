@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 
 const AddBanner = () => {
   const [formData, setFormData] = useState({
+    bannerId: '',
     text: ''
   });
   const [selectedImage, setSelectedImage] = useState(null);
@@ -29,6 +30,11 @@ const AddBanner = () => {
     
     if (!selectedImage) {
       toast.error('Please select a banner image');
+      return;
+    }
+
+    if (!formData.bannerId) {
+      toast.error('Please enter a banner ID');
       return;
     }
 
@@ -58,6 +64,7 @@ const AddBanner = () => {
       
       // Reset form
       setFormData({
+        bannerId: '',
         text: ''
       });
       setSelectedImage(null);
@@ -79,6 +86,19 @@ const AddBanner = () => {
       <div className="form-container">
         <form onSubmit={handleSubmit}>
           <ImageUpload onImageSelect={handleImageSelect} label="Banner Image" />
+
+          <div className="form-group">
+            <label>Banner ID *</label>
+            <input
+              type="text"
+              name="bannerId"
+              value={formData.bannerId}
+              onChange={handleInputChange}
+              className="form-control"
+              placeholder="Enter banner ID"
+              required
+            />
+          </div>
 
           <div className="form-group">
             <label>Banner Text *</label>
