@@ -1,17 +1,20 @@
-import React, { useState } from 'react';
-import { collection, addDoc } from 'firebase/firestore';
+import React, { useState, useEffect } from 'react';
+import { collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { uploadImage } from '../config/cloudinary';
 import ImageUpload from '../components/ImageUpload';
 import { toast } from 'react-toastify';
+import { FaPlus, FaEdit, FaTrash, FaEye } from 'react-icons/fa';
 
 const AddBanner = () => {
+  const [banners, setBanners] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     bannerId: '',
     text: ''
   });
   const [selectedImage, setSelectedImage] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -21,8 +24,44 @@ const AddBanner = () => {
     }));
   };
 
+  // Fetch banners on component mount
+  useEffect(() => {
+    fetchBanners();
+  }, []);
+
+  const fetchBanners = async () => {
+    try {
+      const bannersRef = collection(db, 'banners');
+      const q = query(bannersRef, orderBy('createdAt', 'desc'));
+      const querySnapshot = await getDocs(q);
+      const bannersData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setBanners(bannersData);
+    } catch (error) {
+      console.error('Error fetching banners:', error);
+      toast.error('Error fetching banners');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleImageSelect = (file) => {
     setSelectedImage(file);
+  };
+
+  const handleDelete = async (bannerId) => {
+    if (window.confirm('Are you sure you want to delete this banner? This action cannot be undone.')) {
+      try {
+        await deleteDoc(doc(db, 'banners', bannerId));
+        toast.success('Banner deleted successfully!');
+        await fetchBanners(); // Refresh the list
+      } catch (error) {
+        console.error('Error deleting banner:', error);
+        toast.error('Error deleting banner');
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -43,7 +82,7 @@ const AddBanner = () => {
       return;
     }
 
-    setLoading(true);
+    setSubmitting(true);
 
     try {
       // Upload image to Cloudinary
@@ -68,6 +107,9 @@ const AddBanner = () => {
         text: ''
       });
       setSelectedImage(null);
+      
+      // Refresh banners list
+      await fetchBanners();
 
     } catch (error) {
       console.error('Error adding banner:', error);
@@ -79,8 +121,15 @@ const AddBanner = () => {
 
   return (
     <div>
-      <div className="page-header">
-        <h1>Add Banner</h1>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h1>Banners ({banners.length})</h1>
+        <button 
+          className="btn btn-primary"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+        >
+          <FaPlus /> Add Banner
+        </button>
       </div>
       
       <div className="form-container">
@@ -116,12 +165,58 @@ const AddBanner = () => {
           <button
             type="submit"
             className="btn btn-primary"
-            disabled={loading}
+            disabled={submitting}
           >
-            {loading ? 'Adding Banner...' : 'Add Banner'}
+            {submitting ? 'Adding Banner...' : 'Add Banner'}
           </button>
         </form>
       </div>
+
+      {/* Existing Banners Display */}
+      {loading ? (
+        <div className="loading">Loading banners...</div>
+      ) : (
+        <div className="banners-section">
+          <div className="section-header">
+            <h2>Existing Banners</h2>
+          </div>
+          {banners.length === 0 ? (
+            <div className="no-banners">
+              <p>No banners found. Add your first banner!</p>
+            </div>
+          ) : (
+            <div className="banners-grid">
+              {banners.map((banner) => (
+                <div key={banner.id} className="banner-card">
+                  <div className="banner-image">
+                    <img src={banner.imageUrl} alt={banner.text} />
+                  </div>
+                  <div className="banner-info">
+                    <div className="banner-header">
+                      <h3>Banner ID: {banner.bannerId}</h3>
+                      <div className="banner-actions">
+                        <button 
+                          className="btn-icon btn-delete" 
+                          onClick={() => handleDelete(banner.id)}
+                          title="Delete Banner"
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
+                    </div>
+                    <p className="banner-text">{banner.text}</p>
+                    <div className="banner-meta">
+                      <span className="banner-date">
+                        Created: {banner.createdAt?.toDate ? banner.createdAt.toDate().toLocaleDateString() : 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

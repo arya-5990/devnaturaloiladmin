@@ -12,6 +12,7 @@ import AddBlog from './pages/AddBlog';
 import AddCategory from './pages/AddCategory';
 import AddBanner from './pages/AddBanner';
 import ManageUsers from './pages/ManageUsers';
+import Testimonials from './pages/Testimonials';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
               <Route path="/add-category" element={<AddCategory />} />
               <Route path="/add-banner" element={<AddBanner />} />
               <Route path="/manage-users" element={<ManageUsers />} />
+              <Route path="/testimonials" element={<Testimonials />} />
             </Routes>
           </Layout>
           

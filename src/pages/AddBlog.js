@@ -1,17 +1,20 @@
-import React, { useState } from 'react';
-import { collection, addDoc } from 'firebase/firestore';
+import React, { useState, useEffect } from 'react';
+import { collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { uploadImage } from '../config/cloudinary';
 import ImageUpload from '../components/ImageUpload';
 import { toast } from 'react-toastify';
+import { FaPlus, FaEdit, FaTrash, FaEye } from 'react-icons/fa';
 
 const AddBlog = () => {
+  const [blogs, setBlogs] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     title: '',
     content: ''
   });
   const [selectedImage, setSelectedImage] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -21,8 +24,44 @@ const AddBlog = () => {
     }));
   };
 
+  // Fetch blogs on component mount
+  useEffect(() => {
+    fetchBlogs();
+  }, []);
+
+  const fetchBlogs = async () => {
+    try {
+      const blogsRef = collection(db, 'blogs');
+      const q = query(blogsRef, orderBy('createdAt', 'desc'));
+      const querySnapshot = await getDocs(q);
+      const blogsData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setBlogs(blogsData);
+    } catch (error) {
+      console.error('Error fetching blogs:', error);
+      toast.error('Error fetching blogs');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleImageSelect = (file) => {
     setSelectedImage(file);
+  };
+
+  const handleDelete = async (blogId) => {
+    if (window.confirm('Are you sure you want to delete this blog? This action cannot be undone.')) {
+      try {
+        await deleteDoc(doc(db, 'blogs', blogId));
+        toast.success('Blog deleted successfully!');
+        await fetchBlogs(); // Refresh the list
+      } catch (error) {
+        console.error('Error deleting blog:', error);
+        toast.error('Error deleting blog');
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -38,7 +77,7 @@ const AddBlog = () => {
       return;
     }
 
-    setLoading(true);
+    setSubmitting(true);
 
     try {
       // Upload image to Cloudinary
@@ -63,6 +102,9 @@ const AddBlog = () => {
         content: ''
       });
       setSelectedImage(null);
+      
+      // Refresh blogs list
+      await fetchBlogs();
 
     } catch (error) {
       console.error('Error adding blog:', error);
@@ -74,8 +116,15 @@ const AddBlog = () => {
 
   return (
     <div>
-      <div className="page-header">
-        <h1>Add Blog</h1>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h1>Blogs ({blogs.length})</h1>
+        <button 
+          className="btn btn-primary"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+        >
+          <FaPlus /> Add Blog
+        </button>
       </div>
       
       <div className="form-container">
@@ -111,12 +160,58 @@ const AddBlog = () => {
           <button
             type="submit"
             className="btn btn-primary"
-            disabled={loading}
+            disabled={submitting}
           >
-            {loading ? 'Adding Blog...' : 'Add Blog'}
+            {submitting ? 'Adding Blog...' : 'Add Blog'}
           </button>
         </form>
       </div>
+
+      {/* Existing Blogs Display */}
+      {loading ? (
+        <div className="loading">Loading blogs...</div>
+      ) : (
+        <div className="blogs-section">
+          <div className="section-header">
+            <h2>Existing Blogs</h2>
+          </div>
+          {blogs.length === 0 ? (
+            <div className="no-blogs">
+              <p>No blogs found. Add your first blog!</p>
+            </div>
+          ) : (
+            <div className="blogs-grid">
+              {blogs.map((blog) => (
+                <div key={blog.id} className="blog-card">
+                  <div className="blog-image">
+                    <img src={blog.thumbnailUrl} alt={blog.title} />
+                  </div>
+                  <div className="blog-info">
+                    <div className="blog-header">
+                      <h3>{blog.title}</h3>
+                      <div className="blog-actions">
+                        <button 
+                          className="btn-icon btn-delete" 
+                          onClick={() => handleDelete(blog.id)}
+                          title="Delete Blog"
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
+                    </div>
+                    <p className="blog-content">{blog.content}</p>
+                    <div className="blog-meta">
+                      <span className="blog-date">
+                        Created: {blog.createdAt?.toDate ? blog.createdAt.toDate().toLocaleDateString() : 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

@@ -7,7 +7,8 @@ import {
   FaImages, 
   FaUsers,
   FaBox,
-  FaGift
+  FaGift,
+  FaComments
 } from 'react-icons/fa';
 
 const Sidebar = () => {
@@ -18,6 +19,7 @@ const Sidebar = () => {
     { path: '/add-blog', label: 'Add Blog', icon: <FaBlog /> },
     //{ path: '/add-category', label: 'Add Category', icon: <FaTags /> },
     { path: '/add-banner', label: 'Add Banner', icon: <FaImages /> },
+    { path: '/testimonials', label: 'Testimonials', icon: <FaComments /> },
     //{ path: '/manage-users', label: 'Manage Users', icon: <FaUsers /> },
   ];
 
