@@ -210,7 +210,7 @@ const Testimonials = () => {
               <FaPlus />
               Add Testimonial
             </button>
-          </din
+          </div>
         </div>
       </div>
 
